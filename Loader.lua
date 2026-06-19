@@ -1,8 +1,7 @@
---[[ Ore Highlight v2.0 - Marca todos os minérios no mapa (CORRIGIDO) --]]
+--[[ Ore Highlight v4.0 - APENAS MINÉRIOS COM "ORE" NO FINAL --]]
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
-local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
 -- Aguarda o personagem carregar
@@ -20,47 +19,52 @@ local hum = char:WaitForChild("Humanoid")
 
 -- ========== CONFIGURAÇÕES ==========
 local COR_HIGHLIGHT = Color3.fromRGB(255, 200, 50) -- Dourado
-local TRANSPARENCIA_HIGHLIGHT = 0.4
+local TRANSPARENCIA_HIGHLIGHT = 0.3
 local DISTANCIA_MAXIMA = 500
 
--- Lista de palavras relacionadas a minérios
-local palavrasOre = {
-    "ore", "minerio", "minério", "mineral", "rock", "pedra",
-    "coal", "carvao", "carvão", "iron", "ferro", "gold", "ouro",
-    "diamond", "diamante", "emerald", "esmeralda", "ruby", "rubi",
-    "sapphire", "safira", "copper", "cobre", "tin", "estanho",
-    "silver", "prata", "platinum", "platina", "mithril", "mithral",
-    "adamantite", "adamant", "runite", "rune", "void", "vazio",
-    "crystal", "cristal", "gem", "gema", "quartz", "quartzo",
-    "obsidian", "obsidiana", "nether", "infernal", "end", "ender",
-    "bamboo", "bambu", "bamboo", "panda", "candy", "doce"
+-- ========== LISTA DE MINÉRIOS ESPECÍFICOS ==========
+local minériosPermitidos = {
+    "Gold Ore",
+    "Ruby Ore",
+    "Diamond Ore",
+    "Emerald Ore",
+    "God Ore",
+    "Amethyst Ore",
+    "Obstian", -- Pode ser "Obsidian" ou similar
+    "Grimson",
+    "Coal Ore",
+    "Iron Ore",
+    "Copper Ore",
+    "Silver Ore",
+    "Platinum Ore",
+    "Mithril Ore",
+    "Adamantite Ore",
+    "Crystal Ore",
+    "Quartz Ore",
+    "Sapphire Ore",
+    "Topaz Ore",
+    "Onyx Ore",
+    "Jade Ore",
+    "Titanium Ore",
+    "Uranium Ore"
 }
 
-local palavrasIgnorar = {
-    "chest", "bau", "baú", "shop", "loja", "store", "gift", "presente",
-    "reward", "recompensa", "starter", "iniciante", "pack", "pacote",
-    "vip", "premium", "daily", "weekly", "bonus", "free", "gratuito",
-    "news", "noticias", "index", "decor", "decoracao"
-}
-
--- ========== FUNÇÃO PARA VERIFICAR SE É MINÉRIO ==========
-local function isOre(obj)
+-- ========== FUNÇÃO PARA VERIFICAR SE É MINÉRIO PERMITIDO ==========
+local function isOrePermitido(obj)
     if not obj or not obj.Name then return false end
     
-    local nome = string.lower(obj.Name)
+    local nome = obj.Name
     
-    -- Verifica se é para ignorar
-    for _, palavra in ipairs(palavrasIgnorar) do
-        if string.find(nome, palavra) then
-            return false
+    -- Verifica se o nome está na lista de minérios permitidos
+    for _, oreName in ipairs(minériosPermitidos) do
+        if nome == oreName then
+            return true
         end
     end
     
-    -- Verifica se contém palavra de minério
-    for _, palavra in ipairs(palavrasOre) do
-        if string.find(nome, palavra) then
-            return true
-        end
+    -- Também verifica se termina com "Ore" (caso tenha algum não listado)
+    if string.find(nome, "Ore$") then
+        return true
     end
     
     return false
@@ -99,7 +103,7 @@ local function escanearMinérios()
     
     for _, obj in ipairs(Workspace:GetDescendants()) do
         if obj:IsA("BasePart") or obj:IsA("Model") then
-            if isOre(obj) then
+            if isOrePermitido(obj) then
                 local pos = obj:IsA("Model") and obj:GetPivot().Position or obj.Position
                 if pos and (playerPos - pos).Magnitude < DISTANCIA_MAXIMA then
                     criarHighlight(obj)
@@ -147,26 +151,12 @@ local function criarGUI()
     frameC.CornerRadius = UDim.new(0, 8)
     frameC.Parent = frame
     
-    -- Sombra
-    local shadow = Instance.new("Frame")
-    shadow.Size = UDim2.new(1, 0, 1, 0)
-    shadow.Position = UDim2.new(0, 3, 0, 3)
-    shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    shadow.BackgroundTransparency = 0.5
-    shadow.BorderSizePixel = 0
-    shadow.ZIndex = -1
-    shadow.Parent = frame
-    
-    local shadowC = Instance.new("UICorner")
-    shadowC.CornerRadius = UDim.new(0, 8)
-    shadowC.Parent = shadow
-    
     -- Botão toggle
     local toggleBtn = Instance.new("TextButton")
     toggleBtn.Size = UDim2.new(1, 0, 1, 0)
     toggleBtn.Position = UDim2.new(0, 0, 0, 0)
     toggleBtn.BackgroundTransparency = 1
-    toggleBtn.Text = "⛏️ Marcar Minérios: ON"
+    toggleBtn.Text = "⛏️ Marcar Ores: ON"
     toggleBtn.TextColor3 = Color3.fromRGB(255, 200, 50)
     toggleBtn.TextSize = 13
     toggleBtn.Font = Enum.Font.GothamBold
@@ -197,12 +187,12 @@ local ativo = true
 local function alternarHighlight()
     ativo = not ativo
     if ativo then
-        toggleBtn.Text = "⛏️ Marcar Minérios: ON"
+        toggleBtn.Text = "⛏️ Marcar Ores: ON"
         toggleBtn.TextColor3 = Color3.fromRGB(255, 200, 50)
         toggleBtn.Parent.BorderColor3 = Color3.fromRGB(255, 200, 50)
         escanearMinérios()
     else
-        toggleBtn.Text = "⛏️ Marcar Minérios: OFF"
+        toggleBtn.Text = "⛏️ Marcar Ores: OFF"
         toggleBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
         toggleBtn.Parent.BorderColor3 = Color3.fromRGB(150, 150, 150)
         limparTodosHighlights()
@@ -214,7 +204,8 @@ toggleBtn.MouseButton1Click:Connect(alternarHighlight)
 
 -- ========== LOOP PRINCIPAL ==========
 task.spawn(function()
-    print("⛏️ Ore Highlight iniciado!")
+    print("⛏️ Ore Highlight (APENAS ORES) iniciado!")
+    print("📋 Minérios marcados: Gold Ore, Ruby Ore, Diamond Ore, Emerald Ore, etc.")
     
     while true do
         if ativo and rootPart and rootPart.Parent then
@@ -234,7 +225,7 @@ Workspace.DescendantAdded:Connect(function(obj)
     
     task.wait(0.5)
     
-    if isOre(obj) then
+    if isOrePermitido(obj) then
         local playerPos = rootPart.Position
         local pos = obj:IsA("Model") and obj:GetPivot().Position or (obj:IsA("BasePart") and obj.Position)
         if pos and (playerPos - pos).Magnitude < DISTANCIA_MAXIMA then
@@ -252,7 +243,7 @@ player.CharacterAdded:Connect(function(newChar)
 end)
 
 -- ========== ATALHO DO TECLADO (F9 para ligar/desligar) ==========
-UserInputService = game:GetService("UserInputService")
+local UserInputService = game:GetService("UserInputService")
 
 UserInputService.InputBegan:Connect(function(input, processed)
     if processed then return end
@@ -275,7 +266,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
     end
 end)
 
-print("✅ Ore Highlight ativado!")
+print("✅ Ore Highlight ativado! Apenas minérios com 'Ore' serão marcados.")
 print("🔹 F9 - Liga/Desliga")
 print("🔹 ESC - Esconde/Mostra o botão")
 print("🔹 Clique no botão para alternar")
